@@ -24,7 +24,6 @@ main :: Effect Unit
 main =
   runTest do
     runChapterExamples
-    {-  Move this block comment starting point to enable more tests
     suite "Exercise Group - Applicative and Effects" do
       suite "Exercise - Numeric operators that work with Maybe" do
         suite "addMaybe" do
@@ -46,6 +45,7 @@ main =
         test "divMaybe" do
           Assert.equal (Just 2)
             $ divMaybe (Just 5) (Just 2)
+      
       suite "Exercise - Numeric operators that work with Apply" do
         suite "addApply" do
           test "Maybe Just" do
@@ -96,6 +96,7 @@ main =
           test "Nothing" do
             Assert.equal (Nothing : Nil)
               $ combineMaybe (Nothing :: Maybe (List Char))
+   
     suite "Exercise Group - Applicative Validation" do
       suite "Exercise - stateRegex" do
         let
@@ -107,6 +108,7 @@ main =
         stateTest "CAA" false
         stateTest "C3" false
         stateTest "C$" false
+     
       suite "Exercise - nonEmptyRegex" do
         let
           nonEmptyTest str exp = test str do
@@ -119,6 +121,7 @@ main =
         nonEmptyTest "" false
         nonEmptyTest " " false
         nonEmptyTest "\t" false
+     
       suite "Exercise - validateAddressImproved" do
         test "Valid" do
           let
@@ -137,6 +140,7 @@ main =
           Assert.equal (invalid [ "Field 'State' did not match the required format" ])
             $ validateAddressImproved
             $ address "22 Fake St" "Fake City" "C3"
+    
     suite "Exercise Group - Traversable Functors" do
       suite "Exercise - Tree Show and Eq" do
         let
@@ -150,6 +154,7 @@ main =
         test "Eq - Not Equal" do
           Assert.expectFailure "not equal"
             $ Assert.equal tree Leaf
+    
       let
         leaf :: forall a. a -> Tree a
         leaf x = Branch Leaf x Leaf
@@ -171,6 +176,7 @@ main =
           test "Foldable - foldMap" do
             Assert.equal "1234567"
               $ foldMap (\x -> show x) intTree
+        
         suite "Maybe side-effect" do
           test "Just - traverse" do
             Assert.equal (Just $ Branch (leaf 1) 2 (leaf 3))
@@ -192,18 +198,21 @@ main =
             $ runWriter
             $ traverse (\x -> tell [ x ])
             $ Branch (Branch (leaf 1) 2 (leaf 3)) 4 (Branch (leaf 5) 6 (leaf 7))
+     
       test "Exercise - traversePreOrder" do
         Assert.equal (1 .. 7)
           $ snd
           $ runWriter
           $ traversePreOrder (\x -> tell [ x ])
           $ Branch (Branch (leaf 3) 2 (leaf 4)) 1 (Branch (leaf 6) 5 (leaf 7))
+     
       test "Exercise - traversePostOrder" do
         Assert.equal (1 .. 7)
           $ snd
           $ runWriter
           $ traversePostOrder (\x -> tell [ x ])
           $ Branch (Branch (leaf 1) 3 (leaf 2)) 7 (Branch (leaf 4) 6 (leaf 5))
+
       suite "Exercise - validatePersonOptionalAddress" do
         let
           examplePerson =
@@ -227,6 +236,7 @@ main =
           Assert.equal (invalid ([ "Field 'City' cannot be empty" ]))
             $ validatePersonOptionalAddress
             $ examplePerson { homeAddress = (Just $ address "123 Fake St." "" "CA") }
+     
       suite "Exercise - sequenceUsingTraverse" do
         test "Just" do
           Assert.equal (Just [ 1, 2 ])
@@ -234,6 +244,7 @@ main =
         test "Nothing" do
           Assert.equal Nothing
             $ sequenceUsingTraverse [ Just 1, Nothing ]
+     
       suite "Exercise - traverseUsingSequence" do
         test "Just" do
           Assert.equal (Just [ 1, 2 ])
@@ -242,7 +253,6 @@ main =
           Assert.equal Nothing
             $ traverseUsingSequence fromNumber [ 1.0, 2.7 ]
 
--}
 runChapterExamples :: TestSuite
 runChapterExamples =
   test "Todo for book maintainers - Add tests for chapter examples" do
