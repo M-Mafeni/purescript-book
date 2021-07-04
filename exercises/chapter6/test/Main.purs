@@ -17,7 +17,6 @@ main :: Effect Unit
 main =
   runTest do
     runChapterExamples
-    {-  Move this block comment starting point to enable more tests
     suite "Show Me!" do
       test "Show Point" do
         Assert.equal "(1.0, 2.0)"
@@ -56,10 +55,12 @@ main =
         test "multiply one" do
           Assert.equal v
             $ mul v one
+      
       suite "Ring Complex" do
         test "subtract" do
           Assert.equal (cpx 2.0 3.0)
             $ sub (cpx 3.0 5.0) (cpx 1.0 2.0)
+      
       suite "Show Shape" do
         test "circle" do
           Assert.equal "(Circle (1.0, 2.0) 3.0)"
@@ -92,6 +93,7 @@ main =
           Assert.equal (NonEmpty 10 [ 20, 30 ])
             $ map (_ * 10)
             $ NonEmpty 1 [ 2, 3 ]
+      
       suite "Ord Extended" do
         -- Type annotation necessary to ensure there is an Ord instance for inner type (Int in this case)
         test "infinity equals infinity" do
@@ -116,6 +118,7 @@ main =
           Assert.equal LT
             $ compare (Finite 5)
             $ Finite 6
+
       suite "Foldable NonEmpty" do
         test "foldl" do
           Assert.equal 123
@@ -129,6 +132,7 @@ main =
           Assert.equal "123"
             $ foldMap (\x -> show x)
             $ NonEmpty 1 [ 2, 3 ]
+      
       suite "Foldable OneMore" do
         test "foldl" do
           Assert.equal 123
@@ -142,6 +146,7 @@ main =
           Assert.equal "123"
             $ foldMap (\x -> show x)
             $ OneMore 1 (2 : 3 : Nil)
+      
       let
         withDups =
           [ Circle (Point {x: 1.0, y: 2.0}) 3.0
@@ -156,10 +161,11 @@ main =
           ]
       test "dedupShapes" do
         Assert.equal noDups
-          $ dedupShapes withDups
+          $ dedupShapes withDups     
       test "dedupShapesFast" do
         Assert.equal noDups
           $ dedupShapesFast withDups
+    
     suite "Multi Parameter Type Classes " do
       test "unsafeMaximum" do
         Assert.equal 42
@@ -184,6 +190,7 @@ main =
           Assert.assert ("expected one of " <> show expectOneOf <> ", got " <> show got)
             $ elem got expectOneOf
       -- Multiply String is the actual exercise question
+     
       suite "Action Multiply String" do
         let
           a = "foo"
@@ -196,6 +203,7 @@ main =
         test "concrete" do
           Assert.equal "foofoofoo"
             $ act m1 a
+     
       suite "Action m (Array a)" do
         suite "Action Multiply (Array Int)" do
           let
@@ -211,6 +219,7 @@ main =
                 got = act m1 a
             Assert.assert ("expected one of " <> show expectOneOf <> ", got " <> show got)
               $ elem got expectOneOf
+      
         suite "Action Multiply (Array String)" do
           let
             a = [ "foo", "bar", "baz" ]
@@ -227,6 +236,7 @@ main =
               , "bazbazbaz"
               ]
               $ act m1 a
+      
       suite "Action m (Self m)" do
         let
           a = Self m1
@@ -239,6 +249,7 @@ main =
         test "concrete" do
           Assert.equal (Self (Multiply 12))
             $ act m2 a
+  
     suite "A Type Class for Hashes" do
       suite "arrayHasDuplicates" do
         test "no dupe" do
@@ -250,6 +261,7 @@ main =
         test "only hash dupe" do
           Assert.equal false
             $ arrayHasDuplicates [ 65536, 1, 2, 3 ]
+     
       suite "Hashable Hour" do
         test "match" do
           Assert.equal (hash $ Hour 1)
@@ -261,7 +273,6 @@ main =
             $ hash
             $ Hour 14
 
--}
 runChapterExamples :: TestSuite
 runChapterExamples =
   test "Todo for book maintainers - Add tests for chapter examples" do
