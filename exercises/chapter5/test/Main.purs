@@ -2,7 +2,6 @@ module Test.Main where
 
 import Prelude hiding (gcd)
 import Test.MySolutions
-import Test.NoPeeking.Solutions  -- Note to reader: Delete this line
 
 import ChapterExamples (Amp(..), current, fromString, gcd, gcdV2, isEmpty, livesInLA, lzs, partialFunction, showPerson, showPersonV2, sortPair, takeFive, toString, unknownPerson, Volt(..))
 import Data.Int (round)
@@ -34,8 +33,6 @@ main :: Effect Unit
 main =
   runTest do
     runChapterExamples
-    {-  Move this block comment starting point to enable more tests
-Note to reader: Delete this line to expand comment block -}
     suite "Exercise Group - Simple Pattern Matching" do
       test "Exercise - factorial" do
         Assert.equal 1
@@ -46,6 +43,7 @@ Note to reader: Delete this line to expand comment block -}
           $ factorial 4
         Assert.equal 3628800
           $ factorial 10
+      
       test "Exercise - binomial" do
         Assert.equal 1
           $ binomial 10 0
@@ -57,6 +55,7 @@ Note to reader: Delete this line to expand comment block -}
           $ binomial 10 5
         Assert.equal 1
           $ binomial 5 5
+      
       test "Exercise - pascal" do
         Assert.equal 1
           $ pascal 10 0
@@ -68,12 +67,14 @@ Note to reader: Delete this line to expand comment block -}
           $ pascal 10 5
         Assert.equal 1
           $ pascal 5 5
+    
     suite "Exercise Group - Array and Record Patterns" do
       test "Exercise - sameCity" do
         Assert.equal true
           $ sameCity john rose
         Assert.equal false
           $ sameCity amy rose
+    
       test "Exercise - fromSingleton" do
         Assert.equal "default"
           $ fromSingleton "default" []
@@ -81,10 +82,12 @@ Note to reader: Delete this line to expand comment block -}
           $ fromSingleton "default" ["B"]
         Assert.equal "default"
           $ fromSingleton "default" ["B", "C", "D"]
+
     suite "Exercise Group - Algebraic Data Types" do
       test "Exercise - circleAtOrigin" do
         Assert.equal origin
           $ getCenter circleAtOrigin
+      
       test "Exercise - doubleScaleAndCenter" do
         Assert.equal (Circle origin 10.0)
           $ doubleScaleAndCenter $ Circle origin 5.0
@@ -100,6 +103,7 @@ Note to reader: Delete this line to expand comment block -}
           $ doubleScaleAndCenter $ Line { x: 0.0, y: 4.0 } { x: 4.0, y: 8.0 }
         Assert.equal (Text { x: 0.0, y: 0.0 } "Hello .purs!" )
           $ doubleScaleAndCenter $ Text { x: 4.0, y: 6.0 } "Hello .purs!"
+      
       test "Exercise - shapeText" do
         Assert.equal (Just "Hello .purs!")
           $ shapeText $ Text origin "Hello .purs!"
@@ -109,11 +113,13 @@ Note to reader: Delete this line to expand comment block -}
           $ shapeText $ Rectangle origin 1.0 1.0
         Assert.equal Nothing
           $ shapeText $ Line origin { x: 1.0, y: 1.0 }
+    
     suite "Exercise Group - Newtype" do
       test "Exercise - calculateWattage" do
         Assert.equal 60.0
           $ let (Watt w) = calculateWattage (Amp 0.5) (Volt 120.0)
             in w
+  
     suite "Exercise Group - Vector Graphics" do
       test "Exercise - area" do
         Assert.equal 50
@@ -124,6 +130,8 @@ Note to reader: Delete this line to expand comment block -}
           $ round $ area $ Line origin { x: 2.0, y: 2.0 }
         Assert.equal 0
           $ round $ area $ Text origin "Text has no area!"
+    {-  Move this block comment starting point to enable more tests
+      
       test "Exercise - Clipped shapeBounds" do
         Assert.equal { top: -2.0, left: -2.0, right: 2.0, bottom: 2.0 }
           -- Note to users: You'll need to manually import shapeBounds
@@ -132,7 +140,6 @@ Note to reader: Delete this line to expand comment block -}
         Assert.equal { top: 3.0, left: 3.0, right: 7.0, bottom: 7.0 }
           $ shapeBounds (Clipped samplePicture { x: 5.0, y: 5.0 } 4.0 4.0)
 
-{- Note to reader: Delete this line to expand comment block
 -}
 runChapterExamples :: TestSuite
 runChapterExamples =

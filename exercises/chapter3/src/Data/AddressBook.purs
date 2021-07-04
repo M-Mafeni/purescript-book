@@ -32,6 +32,10 @@ emptyBook = empty
 insertEntry :: Entry -> AddressBook -> AddressBook
 insertEntry = Cons
 
+{-
+  filter :: (Entry -> Boolean) -> AddressBook -> AddressBook
+  head :: AdressBook -> Maybe Entry
+-}
 findEntry :: String -> String -> AddressBook -> Maybe Entry
 findEntry firstName lastName = head <<< filter filterEntry
   where
