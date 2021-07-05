@@ -21,6 +21,8 @@ import Web.HTML (window)
 import Web.HTML.HTMLDocument (toNonElementParentNode)
 import Web.HTML.Window (document)
 
+
+
 -- Note that there's a Purty formatting bug that
 -- adds an unwanted blank line
 -- https://gitlab.com/joneshf/purty/issues/77
@@ -29,13 +31,12 @@ renderValidationErrors [] = []
 renderValidationErrors xs =
   let
     renderError :: String -> R.JSX
-    renderError err = D.li_ [ D.text err ]
+    renderError err = D.div {
+      className: "alert alert-danger row",
+      children: [ D.li_ [D.text err] ]
+    } 
   in
-    [ D.div
-        { className: "alert alert-danger row"
-        , children: [ D.ul_ (map renderError xs) ]
-        }
-    ]
+    [ D.div_ (map renderError xs)]
 
 -- Helper function to render a single form field with an
 -- event handler to update
