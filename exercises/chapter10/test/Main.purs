@@ -25,7 +25,6 @@ main :: Effect Unit
 main =
   runTest do
     runChapterExamples
-    {-  Move this block comment starting point to enable more tests
     suite "Exercise Group - Calling JavaScript" do
       suite "Exercise - volumeFn" do
         test "1 2 3" do
@@ -34,6 +33,7 @@ main =
         test "1 0 3" do
           Assert.equal 0.0
             $ runFn3 volumeFn 1.0 0.0 3.0
+   
       suite "Exercise - volumeArrow" do
         test "1 2 3" do
           Assert.equal 6.0
@@ -41,6 +41,7 @@ main =
         test "1 0 3" do
           Assert.equal 0.0
             $ volumeArrow 1.0 0.0 3.0
+  
     suite "Exercise Group - Passing Simple Types" do
       suite "Exercise - cumulativeSumsComplex" do
         test "sequential" do
@@ -54,6 +55,7 @@ main =
                 , { real: 3.0, imag: 4.0 }
                 , { real: 5.0, imag: 6.0 }
                 ]
+    
     suite "Exercise Group - Beyond Simple Types" do
       suite "Exercise - quadraticRoots" do
         let
@@ -79,6 +81,7 @@ main =
           { a: 3.0, b: -6.0, c: 3.0 }
           { real: 1.0, imag: 0.0 }
           { real: 1.0, imag: 0.0 }
+      
       suite "Exercise - toMaybe" do
         test "Nothing" do
           Assert.equal Nothing
@@ -86,6 +89,7 @@ main =
         test "Just" do
           Assert.equal (Just 1)
             $ toMaybe $ undefinedHead [1]
+   
     suite "Exercise Group - JSON" do
       suite "Exercise - valuesOfMap" do
         test "Items" do
@@ -96,6 +100,7 @@ main =
           Assert.equal (Right $ Set.fromFoldable [])
             $ valuesOfMap
             $ Map.fromFoldable []
+     
       suite "Exercise - valuesOfMapGeneric" do
         test "String Int" do
           Assert.equal (Right $ Set.fromFoldable [ 1, 2 ])
@@ -105,6 +110,7 @@ main =
           Assert.equal (Right $ Set.fromFoldable [ "hat", "cat" ])
             $ valuesOfMapGeneric
             $ Map.fromFoldable [ Tuple [ 1, 3, 5 ] "hat", Tuple [ 43, 8 ] "cat" ]
+   
       suite "Exercise - quadraticRootsSet" do
         let
           helper :: String -> Quadratic -> Complex -> Complex -> Free TestF Unit
@@ -128,6 +134,7 @@ main =
           { a: 3.0, b: -6.0, c: 3.0 }
           { real: 1.0, imag: 0.0 }
           { real: 1.0, imag: 0.0 }
+      
       suite "Exercise - quadraticRootsSafe" do
         let
           helper :: String -> Quadratic -> Complex -> Complex -> Free TestF Unit
@@ -152,18 +159,21 @@ main =
           { a: 3.0, b: -6.0, c: 3.0 }
           { real: 1.0, imag: 0.0 }
           { real: 1.0, imag: 0.0 }
+    
       test "Exercise - parseAndDecodeArray2D" do
         let
           arr = [ [ 1, 2, 3 ], [ 4, 5 ], [ 6 ] ]
         Assert.equal (Right arr)
           $ parseAndDecodeArray2D
           $ show arr -- the correct JSON string happens to also be produced by show
+
       test "Exercise - encode decode Tree" do
         let
           tree = Branch (Leaf 1) (Branch (Leaf 2) (Leaf 3))
         Assert.equal (Right tree)
           $ decodeJson
           $ encodeJson tree
+      
       suite "Exercise - IntOrString" do
         test "IoS to IoS Int" do
           let
@@ -208,7 +218,6 @@ main =
             (decoded :: Either _ IntOrString) = decodeJson $ encodeJson 1.5
           Assert.assert "Got a Right, should be Left" $ isLeft decoded
 
--}
 -- Put in ascending order by real, then imag components
 orderCpx :: Pair Complex -> Pair Complex
 orderCpx (Pair c1 c2)
