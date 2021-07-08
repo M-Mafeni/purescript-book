@@ -20,7 +20,6 @@ main :: Effect Unit
 main =
   runTest do
     test "" success
-    {-  Move this block comment starting point to enable more tests
     suite "Exercises Group - The State Monad" do
       suite "testParens" do
         let 
@@ -53,6 +52,7 @@ main =
                 , indent $ line "I am even more indented"
                 ]
               ]
+   
     suite "Exercises Group - The Writer Monad" do
       suite "sumArrayWriter" do
         test "should sum arrays" do
@@ -61,6 +61,7 @@ main =
               sumArrayWriter [1, 2, 3]
               sumArrayWriter [4, 5]
               sumArrayWriter [6]
+     
       suite "collatz" do
         let
           expected_11 =
@@ -73,6 +74,7 @@ main =
         test "c = 15" do
           Assert.equal expected_15
             $ collatz 15
+   
     suite "Exercises Group - Monad Transformers" do
       suite "parser" do
         let
@@ -83,6 +85,7 @@ main =
         test "should fail if string could not be parsed" do
           Assert.equal (Left ["Could not parse"])
             $ runParser (string "abc") "foobar"
+    
       suite "indents with ReaderT and WriterT" do
         let
           expectedText =
@@ -99,5 +102,3 @@ main =
                   line' "So am I"
                   indent' $ do
                     line' "I am even more indented"
-
--}
