@@ -11,10 +11,10 @@ import Data.Either (Either(..))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.Alert (alert)
+import Effect.Alert (alert, confirm)
 import Effect.Console (log)
 import Effect.Exception (throw)
-import Effect.Storage (getItem, setItem)
+import Effect.Storage (getItem, removeItem, setItem)
 import React.Basic.DOM as D
 import React.Basic.DOM.Events (targetValue)
 import React.Basic.Events (handler, handler_)
@@ -125,6 +125,24 @@ mkAddressBookApp =
                   }
               ]
           }
+
+      handleReset :: Effect Unit
+      handleReset = do
+        confirmed <- confirm "Are you sure you want to reset your details?"
+        if confirmed then removeItem "person" else pure unit
+
+      resetButton :: R.JSX
+      resetButton = D.label
+          { className: "form-group row col-form-label"
+          , children:
+              [ D.button
+                  { className: "btn-primary btn"
+                  , onClick: handler_ handleReset
+                  , children: [ D.text "Clear" ]
+                  }
+              ]
+          }
+
     pure
       $ D.div
           { className: "container"
@@ -152,7 +170,14 @@ mkAddressBookApp =
                           ]
                       }
                   ]
-                <> [ saveButton ]
+                <> [ D.div 
+                      {
+                        style: D.css {justifyContent: "space-between", display: "flex", width: "25%"}
+                        , children: [saveButton, resetButton ]
+                      }
+                      
+                  
+                  ]
           }
 
 processItem :: Json -> Either String Person
