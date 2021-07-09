@@ -2,10 +2,13 @@ module Test.MySolutions where
 
 import Prelude
 
-import Control.Monad.Except (ExceptT, lift, throwError)
+import Control.Alt ((<|>))
+import Control.Monad.Except (ExceptT, runExceptT, throwError)
 import Control.Monad.Reader (Reader, ReaderT, ask, local, runReader, runReaderT)
-import Control.Monad.State (State, StateT, execState, get, modify, put)
-import Control.Monad.Writer (Writer, WriterT, execWriterT, runWriter, tell)
+import Control.Monad.State (State, StateT, execState, get, modify, put, runStateT)
+import Control.Monad.Writer (Writer, WriterT, execWriterT, runWriter, runWriterT, tell)
+import Data.Array (many, some)
+import Data.Either (Either)
 import Data.Foldable (traverse_)
 import Data.Identity (Identity)
 import Data.Maybe (Maybe(..))
@@ -13,7 +16,7 @@ import Data.Monoid (power)
 import Data.Monoid.Additive (Additive(..))
 import Data.Newtype (unwrap)
 import Data.String (Pattern(..), joinWith, stripPrefix)
-import Data.String.CodeUnits (drop, take, toCharArray)
+import Data.String.CodeUnits (toCharArray)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple)
 
@@ -73,12 +76,15 @@ type Log = Array String
 
 type Parser = StateT String (WriterT Log (ExceptT Errors Identity))
 
+runParser :: forall a. Parser a -> String -> Either Errors (Tuple (Tuple a String) Log)
+runParser p s = unwrap $ runExceptT $ runWriterT $ runStateT p s
+
 string :: String -> Parser String
 string prefix = do
   s <- get
-  lift $ tell ["The state is " <> s]
+  tell ["The state is " <> s]
   case stripPrefix (Pattern prefix) s of
-    Nothing -> lift $ lift $ throwError ["Could not parse"]
+    Nothing -> throwError ["Could not parse"]
     Just suffix -> do
       put suffix
       pure prefix
@@ -88,7 +94,7 @@ type Document = ReaderT Int (WriterT (Array String) Identity)
 line' :: String -> Document Unit
 line' sentence = do
   level <- ask
-  lift $ tell $ [("  " `power` level) <> sentence]
+  tell $ [("  " `power` level) <> sentence]
   pure unit
 
 indent' :: forall a. Document a -> Document a
@@ -97,3 +103,12 @@ indent' = local (\n -> n + 1)
 
 render' :: Document Unit -> String
 render' document =  joinWith "\n" $ unwrap $ execWriterT $ runReaderT document 0
+
+allAs :: Parser String
+allAs =  joinWith "" <$> some (string "a")
+
+asThenBs :: Parser String
+asThenBs = (joinWith "" <$> some (string "a")) <|> (joinWith "" <$> some (string "b"))
+
+asOrBs :: Parser String
+asOrBs = joinWith "" <$> many (string "a" <|> string "b")
