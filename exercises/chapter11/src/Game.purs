@@ -2,11 +2,12 @@ module Game where
 
 import Prelude
 
+import Control.Monad.Except (ExceptT, throwError)
 import Control.Monad.RWS (RWS)
 import Control.Monad.Reader (ask)
 import Control.Monad.State (get, modify_, put)
 import Control.Monad.Writer (tell)
-import Data.Coords (Coords(..), prettyPrintCoords, coords)
+import Data.Coords (Coords(..), coords, prettyPrintCoords)
 import Data.Foldable (for_)
 import Data.GameEnvironment (GameEnvironment(..))
 import Data.GameItem (GameItem(..), readItem)
@@ -18,7 +19,7 @@ import Data.Set as S
 
 type Log = L.List String
 
-type Game = RWS GameEnvironment Log GameState
+type Game = ExceptT Log (RWS GameEnvironment Log GameState)
 
 describeRoom :: Game Unit
 describeRoom = do
@@ -65,7 +66,15 @@ use Matches = do
                            , "You win!"
                            ])
     else tell (L.singleton "You don't have anything to light.")
-
+cheat :: Game Unit
+cheat = do
+  GameState state <- get
+  let newInventory = state.inventory `S.union` (S.unions $ M.values state.items)
+  let newItems = M.mapMaybe (const (Just S.empty)) state.items
+  put $ GameState state { items = newItems
+                        , inventory = newInventory
+                        }
+  tell (L.singleton "Cheat successful you now have all the items")
 game :: Array String -> Game Unit
 game ["look"] = do
   GameState state <- get
@@ -91,7 +100,7 @@ game ["use", item] =
       hasItem <- has gameItem
       if hasItem
         then use gameItem
-        else tell (L.singleton "You don't have that item.")
+        else throwError (L.singleton "You don't have that item.")
 game ["debug"] = do
   GameEnvironment env <- ask
   if env.debugMode
@@ -99,5 +108,6 @@ game ["debug"] = do
       state :: GameState <- get
       tell (L.singleton (show state))
     else tell (L.singleton "Not running in debug mode.")
+game ["cheat"] = cheat
 game [] = pure unit
-game _  = tell (L.singleton "I don't understand.")
+game _  = throwError (L.singleton "I don't understand.")
