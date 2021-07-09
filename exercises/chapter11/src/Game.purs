@@ -108,6 +108,10 @@ game ["debug"] = do
       state :: GameState <- get
       tell (L.singleton (show state))
     else tell (L.singleton "Not running in debug mode.")
-game ["cheat"] = cheat
+game ["cheat"] = do
+  GameEnvironment env <- ask
+  if env.cheatMode
+    then cheat
+    else throwError (L.singleton "not running in cheat mode")
 game [] = pure unit
 game _  = throwError (L.singleton "I don't understand.")
