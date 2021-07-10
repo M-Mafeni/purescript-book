@@ -2,11 +2,10 @@ module Example.Shapes where
 
 import Prelude
 
-import Effect (Effect)
 import Data.Maybe (Maybe(..))
-import Graphics.Canvas (closePath, lineTo, moveTo, fillPath,
-                        setFillStyle, arc, rect, getContext2D,
-                        getCanvasElementById)
+import Effect (Effect)
+import Graphics.Canvas (addColorStop, arc, closePath, createLinearGradient, fillPath, getCanvasElementById, getContext2D, lineTo, moveTo, rect, setFillStyle, setLineWidth, strokeRect)
+import Graphics.MyCanvas (setGradientStrokeStyle)
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 
@@ -26,6 +25,7 @@ main = void $ unsafePartial do
   Just canvas <- getCanvasElementById "canvas"
   ctx <- getContext2D canvas
 
+  -- Square
   setFillStyle ctx "#00F"
 
   fillPath ctx $ rect ctx $ translate (-200.0) (-200.0)
@@ -35,6 +35,7 @@ main = void $ unsafePartial do
     , height: 100.0
     }
 
+  -- Triangle
   setFillStyle ctx "#0F0"
 
   fillPath ctx $ arc ctx $ translate 200.0 200.0
@@ -45,6 +46,7 @@ main = void $ unsafePartial do
     , end: Math.tau * 2.0 / 3.0
     }
 
+  -- partial circle
   setFillStyle ctx "#F00"
 
   fillPath ctx $ do
@@ -52,3 +54,15 @@ main = void $ unsafePartial do
     lineTo ctx 260.0 340.0
     lineTo ctx 340.0 340.0
     closePath ctx
+
+  -- rectangle with gradient
+
+  gradient <- createLinearGradient ctx {x0: 0.0, y0: 0.0, x1: 170.0, y1: 0.0}
+
+  addColorStop gradient 0.0 "magenta"
+  addColorStop gradient 0.5 "blue"
+  addColorStop gradient 1.0 "red"
+
+  setLineWidth ctx 5.0
+  setGradientStrokeStyle ctx gradient
+  strokeRect ctx $ translate 0.0 450.0 {x: 20.0, y: 20.0, width: 150.0, height: 100.0}

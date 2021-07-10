@@ -2,13 +2,13 @@ module Example.Random where
 
 import Prelude
 
-import Effect (Effect)
-import Effect.Random (random)
 import Data.Array ((..))
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
-import Graphics.Canvas (strokePath, fillPath, arc, setStrokeStyle,
-                        setFillStyle, getContext2D, getCanvasElementById)
+import Effect (Effect)
+import Effect.Random (random)
+import Graphics.Canvas (arc, getCanvasElementById, getContext2D, setFillStyle, setStrokeStyle)
+import Graphics.MyCanvas (strokeAndFillPath)
 import Math as Math
 import Partial.Unsafe (unsafePartial)
 
@@ -32,6 +32,5 @@ main = void $ unsafePartial do
          , start : 0.0
          , end   : Math.tau
          }
-
-    fillPath ctx path
-    strokePath ctx path
+    
+    strokeAndFillPath ctx path
