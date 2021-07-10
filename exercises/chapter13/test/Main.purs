@@ -2,15 +2,22 @@ module Test.Main where
 
 import Prelude
 
-import Data.Array (sort, sortBy)
-import Data.Foldable (foldr)
+import Data.Array (all, reverse, sort, sortBy)
+import Data.Array.NonEmpty (toUnfoldable1)
+import Data.Foldable (foldMap, foldr)
 import Data.Function (on)
-import Data.List (List(..), fromFoldable)
+import Data.List (List(..), fromFoldable, toUnfoldable)
+import Data.Maybe (Maybe(..), fromJust)
+import Data.Maybe.First (First(..))
+import Data.Newtype (unwrap)
 import Effect (Effect)
-import Merge (mergeWith, mergePoly, merge)
+import Merge (merge, mergePoly, mergeWith)
+import Partial.Unsafe (unsafePartial)
 import Sorted (sorted)
-import Test.QuickCheck (quickCheck, (<?>))
+import Test.QuickCheck (Result(..), mkSeed, quickCheck, quickCheckPure, (<?>))
 import Tree (Tree, member, insert, toArray, anywhere)
+import WordVal (WordVal(..)) as W
+import WordVal (WordVal)
 
 isSorted :: forall a. (Ord a) => Array a -> Boolean
 isSorted = go <<< fromFoldable
@@ -27,6 +34,13 @@ intToBool = identity
 treeOfInt :: Tree Int -> Tree Int
 treeOfInt = identity
 
+bools :: Array Boolean -> Array Boolean
+bools = identity
+
+wordVal :: WordVal -> WordVal
+wordVal = identity
+
+
 main :: Effect Unit
 main = do
   -- Tests for module 'Merge'
@@ -38,11 +52,21 @@ main = do
     in
       eq result expected <?> "Result:\n" <> show result <> "\nnot equal to expected:\n" <> show expected
 
+  quickCheck \xs ->
+    let
+      result = merge (sort xs) []
+      expected = sort xs
+    in
+      eq result expected <?> "Result:\n" <> show result <> "\nnot equal to expected:\n" <> show expected
+    
   quickCheck \xs ys ->
     eq (merge (sorted xs) (sorted ys)) (sort $ sorted xs <> sorted ys)
 
   quickCheck \xs ys ->
     eq (ints $ mergePoly (sorted xs) (sorted ys)) (sort $ sorted xs <> sorted ys)
+
+  quickCheck \xs ys ->
+    eq (bools $ mergePoly (sorted xs) (sorted ys)) (sort $ sorted xs <> sorted ys)
 
   quickCheck \xs ys f ->
     let
@@ -50,6 +74,26 @@ main = do
       expected = map f $ sortBy (compare `on` f) $ xs <> ys
     in
       eq result expected
+
+  -- mergeWith associativity
+  quickCheck \xs ys zs f ->
+    let
+      sortedXs = sortBy (compare `on` f) xs
+      sortedYs = sortBy (compare `on` f) ys
+      sortedZs = sortBy (compare `on` f) zs
+      r1 = map f $ mergeWith f (mergeWith (intToBool f) sortedXs sortedYs) sortedZs
+      r2 = map f $ mergeWith (intToBool f) sortedXs (mergeWith f sortedYs sortedZs)
+    in
+      eq r1 r2
+  -- reverse check
+  quickCheck \xs ->
+    eq (ints xs) (( reverse <<< reverse <<< ints) xs) 
+
+  quickCheck \xs ->
+    eq (bools xs) (( reverse <<< reverse <<< bools) xs)
+
+  -- Sanity Test for wordval
+  quickCheck \v -> eq (wordVal v) (wordVal v)
 
   -- Tests for module 'Tree'
 
@@ -59,3 +103,19 @@ main = do
   quickCheck \f g t ->
     anywhere (\s -> f s || g s) t ==
       anywhere f (treeOfInt t) || anywhere g t
+
+mergeResults = quickCheckPure (mkSeed 12345) 10 $ \xs ys zs f ->
+    let
+      sortedXs = sortBy (compare `on` f) xs
+      sortedYs = sortBy (compare `on` f) ys
+      sortedZs = sortBy (compare `on` f) zs
+      r1 = map f $ mergeWith f (mergeWith (intToBool f) sortedXs sortedYs) sortedZs
+      r2 = map f $ mergeWith (intToBool f) sortedXs (mergeWith f sortedYs sortedZs)
+    in
+      eq r1 r2
+
+squashResultBool :: List Result -> Boolean
+squashResultBool = all (\x -> show x == "Success") <<< toUnfoldable
+
+squashResults :: List Result -> Result
+squashResults =  unsafePartial fromJust <<< unwrap <<< foldMap (First <<< Just)

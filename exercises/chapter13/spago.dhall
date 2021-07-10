@@ -10,6 +10,7 @@ You can edit this file as you like.
   , "foldable-traversable"
   , "functions"
   , "lists"
+  , "newtype"
   , "prelude"
   , "psci-support"
   , "quickcheck"
