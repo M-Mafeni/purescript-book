@@ -20,6 +20,7 @@ module Data.DOM.Free
   , attribute, (:=)
   , text
   , elem
+  , comment
 
   , render
   ) where
@@ -41,10 +42,12 @@ newtype Element = Element
 data ContentF a
   = TextContent String a
   | ElementContent Element a
+  | CommentContent String a
 
 instance functorContentF :: Functor ContentF where
   map f (TextContent s x) = TextContent s (f x)
   map f (ElementContent e x) = ElementContent e (f x)
+  map f (CommentContent s x) = CommentContent s (f x)
 
 type Content = Free ContentF
 
@@ -53,6 +56,7 @@ newtype Attribute = Attribute
   , value        :: String
   }
 
+newtype AttributeKey :: forall k. k -> Type
 newtype AttributeKey a = AttributeKey String
 
 element :: String -> Array Attribute -> Maybe (Content Unit) -> Element
@@ -67,6 +71,9 @@ text s = liftF $ TextContent s unit
 
 elem :: Element -> Content Unit
 elem e = liftF $ ElementContent e unit
+
+comment :: String -> Content Unit
+comment s = liftF $ CommentContent s unit 
 
 class IsValue a where
   toValue :: a -> String
@@ -129,10 +136,15 @@ render = execWriter <<< renderElement
           tell "\""
 
         renderContent :: Maybe (Content Unit) -> Writer String Unit
+        -- content :: Content Unit = Free ContentF Unit
+        -- renderContentItem :: ContentF (Content Unit) -> Writer String (Content Unit)
+        -- runFreeM renderContentItem content :: Writer String Unit
+        -- TextContent :: String -> (Content Unit) -> ContentF (Content Unit)
         renderContent Nothing = tell " />"
         renderContent (Just content) = do
           tell ">"
           runFreeM renderContentItem content
+          -- Construct closing tag
           tell "</"
           tell e.name
           tell ">"
@@ -144,3 +156,13 @@ render = execWriter <<< renderElement
         renderContentItem (ElementContent e' rest) = do
           renderElement e'
           pure rest
+        renderContentItem (CommentContent s rest) = do
+          tell "<! --"
+          tell s
+          tell "-->"
+          pure rest
+
+testVal = render $ p [] $ do
+  comment "This is a cat picture"
+  elem $ img [ src := "cat.jpg" ]
+  text "A cat"

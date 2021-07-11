@@ -5,3 +5,7 @@ dist
 /index.html
 /book
 /**/.parcel-cache/**
+*.un~
+*~
+**/.vscode/**
+

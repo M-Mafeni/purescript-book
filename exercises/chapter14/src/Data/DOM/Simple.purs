@@ -38,3 +38,17 @@ render (Element e) =
         renderContentItem :: Content -> String
         renderContentItem (TextContent s) = s
         renderContentItem (ElementContent e') = render e'
+
+testHtml :: String
+testHtml = render $ Element
+   { name: "p"
+   , attribs: [
+       Attribute
+         { key: "class"
+         , value: "main"
+         }
+     ]
+   , content: Just [
+       TextContent "Hello World!"
+     ]
+   }

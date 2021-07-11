@@ -3,10 +3,13 @@ module Data.DOM.Smart
   , Attribute
   , Content
   , AttributeKey
+  , EmptyAttributeKey
 
   , a
   , p
   , img
+  , input
+  , form
 
   , href
   , _class
@@ -14,17 +17,20 @@ module Data.DOM.Smart
   , width
   , height
 
+  , disabled
+
   , attribute, (:=)
   , text
   , elem
+  , emptyAttribute
 
   , render
   ) where
 
 import Prelude
 
-import Data.Maybe (Maybe(..))
-import Data.String (joinWith)
+import Data.Maybe (Maybe(..), fromMaybe)
+import Data.String (joinWith, null)
 
 newtype Element = Element
   { name         :: String
@@ -38,7 +44,7 @@ data Content
 
 newtype Attribute = Attribute
   { key          :: String
-  , value        :: String
+  , value        :: Maybe String
   }
 
 element :: String -> Array Attribute -> Maybe (Array Content) -> Element
@@ -56,10 +62,18 @@ elem = ElementContent
 
 newtype AttributeKey = AttributeKey String
 
+newtype EmptyAttributeKey = EmptyAttributeKey String
+
 attribute :: AttributeKey -> String -> Attribute
 attribute (AttributeKey key) value = Attribute
   { key: key
-  , value: value
+  , value: Just value
+  }
+
+emptyAttribute :: EmptyAttributeKey -> Attribute
+emptyAttribute (EmptyAttributeKey key) = Attribute
+  { key: key
+  , value: Nothing
   }
 
 infix 4 attribute as :=
@@ -72,6 +86,12 @@ p attribs content = element "p" attribs (Just content)
 
 img :: Array Attribute -> Element
 img attribs = element "img" attribs Nothing
+
+input :: Array Attribute -> Element
+input attribs = element "input" attribs Nothing
+
+form :: Array Attribute -> Array Content -> Element
+form attribs content = element "form" attribs (Just content)
 
 href :: AttributeKey
 href = AttributeKey "href"
@@ -88,6 +108,9 @@ width = AttributeKey "width"
 height :: AttributeKey
 height = AttributeKey "height"
 
+disabled :: EmptyAttributeKey
+disabled = EmptyAttributeKey "disabled"
+
 render :: Element -> String
 render (Element e) =
     "<" <> e.name <>
@@ -95,7 +118,11 @@ render (Element e) =
     renderContent e.content
   where
     renderAttribute :: Attribute -> String
-    renderAttribute (Attribute x) = x.key <> "=\"" <> x.value <> "\""
+    renderAttribute (Attribute x) = 
+      let
+        value = fromMaybe "" x.value
+      in
+        if (null value) then x.key else x.key <> "=\"" <> value <> "\""
 
     renderContent :: Maybe (Array Content) -> String
     renderContent Nothing = " />"

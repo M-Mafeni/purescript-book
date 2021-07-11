@@ -62,6 +62,7 @@ newtype Attribute = Attribute
   , value        :: String
   }
 
+newtype AttributeKey :: forall k. k -> Type
 newtype AttributeKey a = AttributeKey String
 
 element :: String -> Array Attribute -> Maybe (Content Unit) -> Element
