@@ -1,6 +1,5 @@
 module Data.DOM.Name
-  ( Element
-  , Attribute
+  ( Attribute
   , Name
   , Content
   , ContentF
@@ -22,7 +21,6 @@ module Data.DOM.Name
 
   , attribute, (:=)
   , text
-  , elem
   , newName
 
   , render
@@ -30,7 +28,7 @@ module Data.DOM.Name
 
 import Prelude
 
-import Control.Monad.Free (Free, runFreeM, liftF)
+import Control.Monad.Free (Free, liftF, runFreeM)
 import Control.Monad.State (State, evalState)
 import Control.Monad.State.Trans (put, get)
 import Control.Monad.Writer.Trans (WriterT, execWriterT, tell)
@@ -97,14 +95,14 @@ attribute (AttributeKey key) value = Attribute
 
 infix 4 attribute as :=
 
-a :: Array Attribute -> Content Unit -> Element
-a attribs content = element "a" attribs (Just content)
+a :: Array Attribute -> Content Unit -> Content Unit
+a attribs content = elem $ element "a" attribs (Just content)
 
-p :: Array Attribute -> Content Unit -> Element
-p attribs content = element "p" attribs (Just content)
+p :: Array Attribute -> Content Unit -> Content Unit
+p attribs content = elem $ element "p" attribs (Just content)
 
-img :: Array Attribute -> Element
-img attribs = element "img" attribs Nothing
+img :: Array Attribute -> Content Unit
+img attribs = elem $ element "img" attribs Nothing
 
 data Href
   = URLHref String
@@ -134,43 +132,48 @@ height = AttributeKey "height"
 
 type Interp = WriterT String (State Int)
 
-render :: Element -> String
-render = \e -> evalState (execWriterT (renderElement e)) 0
-  where
-    renderElement :: Element -> Interp Unit
-    renderElement (Element e) = do
-        tell "<"
-        tell e.name
-        for_ e.attribs $ \x -> do
-          tell " "
-          renderAttribute x
-        renderContent e.content
-      where
-        renderAttribute :: Attribute -> Interp Unit
-        renderAttribute (Attribute x) = do
-          tell x.key
-          tell "=\""
-          tell x.value
-          tell "\""
+-- Content Unit = Content (Free ContentF Unit)
+-- ContentF (Content a) -> Interp (Content a)
+render :: Content Unit -> String
+render c = evalState (execWriterT $ runFreeM renderContentItem c) 0 where
+  renderContentItem :: forall a. ContentF (Content a) -> Interp (Content a)
+  renderContentItem (TextContent s rest) = do
+    tell s
+    pure rest
+  renderContentItem (ElementContent e' rest) = do
+    renderElement e'
+    pure rest
+  renderContentItem (NewName k) = do
+    n <- get
+    let fresh = Name $ "name" <> show n
+    put $ n + 1
+    pure (k fresh)
+  
+  renderElement :: Element -> Interp Unit
+  renderElement (Element e) = do
+      tell "<"
+      tell e.name
+      for_ e.attribs $ \x -> do
+        tell " "
+        renderAttribute x
+      renderContent e.content
+    where
+      renderAttribute :: Attribute -> Interp Unit
+      renderAttribute (Attribute x) = do
+        tell x.key
+        tell "=\""
+        tell x.value
+        tell "\""
 
-        renderContent :: Maybe (Content Unit) -> Interp Unit
-        renderContent Nothing = tell " />"
-        renderContent (Just content) = do
-          tell ">"
-          runFreeM renderContentItem content
-          tell "</"
-          tell e.name
-          tell ">"
+      renderContent :: Maybe (Content Unit) -> Interp Unit
+      renderContent Nothing = tell " />"
+      renderContent (Just c1) = do
+        tell ">"
+        runFreeM renderContentItem c1
+        tell "</"
+        tell  e.name
+        tell ">"
 
-        renderContentItem :: forall a. ContentF (Content a) -> Interp (Content a)
-        renderContentItem (TextContent s rest) = do
-          tell s
-          pure rest
-        renderContentItem (ElementContent e' rest) = do
-          renderElement e'
-          pure rest
-        renderContentItem (NewName k) = do
-          n <- get
-          let fresh = Name $ "name" <> show n
-          put $ n + 1
-          pure (k fresh)
+testVal = render $ p [] $ do
+  img [ src := "cat.jpg" ]
+  text "A cat"
