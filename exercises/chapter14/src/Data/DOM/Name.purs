@@ -24,6 +24,8 @@ module Data.DOM.Name
   , newName
 
   , render
+  , testVal
+  , testVal2
   ) where
 
 import Prelude
@@ -53,7 +55,28 @@ instance functorContentF :: Functor ContentF where
   map f (ElementContent e x) = ElementContent e (f x)
   map f (NewName k) = NewName (f <<< k)
 
-type Content = Free ContentF
+newtype Content a = Content (Free ContentF a)
+
+fromContent :: forall a. Content a -> Free ContentF a
+fromContent (Content c) = c
+
+instance contentFunctor :: Functor Content where
+  -- map :: (a -> b) -> Content a -> Content b
+  map f (Content c) = Content (f <$> c)
+
+instance contentApply :: Apply Content where
+  -- apply :: Content (a -> b) -> Content a -> Content b
+  apply (Content f) (Content x) = Content $ f <*> x
+
+
+instance contentApplicative :: Applicative Content where
+  -- pure :: a -> Content a
+  pure x = Content $ pure x
+
+instance contentBind :: Bind Content where
+  -- bind :: Content a -> (a -> Content b) -> Content b
+  -- (Free ContentF a) -> a
+  bind (Content c) f = Content $ c >>= (fromContent <<< f)
 
 newtype Attribute = Attribute
   { key          :: String
@@ -67,13 +90,13 @@ element :: String -> Array Attribute -> Maybe (Content Unit) -> Element
 element name_ attribs content = Element { name: name_, attribs, content }
 
 text :: String -> Content Unit
-text s = liftF $ TextContent s unit
+text s = Content $ liftF $ TextContent s unit
 
 elem :: Element -> Content Unit
-elem e = liftF $ ElementContent e unit
+elem e = Content $ liftF $ ElementContent e unit
 
 newName :: Content Name
-newName = liftF $ NewName identity
+newName = Content $ liftF $ NewName identity
 
 class IsValue a where
   toValue :: a -> String
@@ -135,8 +158,8 @@ type Interp = WriterT String (State Int)
 -- Content Unit = Content (Free ContentF Unit)
 -- ContentF (Content a) -> Interp (Content a)
 render :: Content Unit -> String
-render c = evalState (execWriterT $ runFreeM renderContentItem c) 0 where
-  renderContentItem :: forall a. ContentF (Content a) -> Interp (Content a)
+render (Content c) = evalState (execWriterT $ runFreeM renderContentItem c) 0 where
+  renderContentItem :: forall a. ContentF (Free ContentF a) -> Interp (Free ContentF a)
   renderContentItem (TextContent s rest) = do
     tell s
     pure rest
@@ -167,7 +190,7 @@ render c = evalState (execWriterT $ runFreeM renderContentItem c) 0 where
 
       renderContent :: Maybe (Content Unit) -> Interp Unit
       renderContent Nothing = tell " />"
-      renderContent (Just c1) = do
+      renderContent (Just (Content c1)) = do
         tell ">"
         runFreeM renderContentItem c1
         tell "</"
@@ -177,3 +200,12 @@ render c = evalState (execWriterT $ runFreeM renderContentItem c) 0 where
 testVal = render $ p [] $ do
   img [ src := "cat.jpg" ]
   text "A cat"
+  img [ src := "dog.jpg" ]
+
+
+testVal2 = render $ p [ ] $ do
+   top <- newName
+   a [ name := top ] $
+     text "Top"
+   a [ href := AnchorHref top ] $
+     text "Back to top"
